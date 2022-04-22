@@ -1,8 +1,10 @@
 package mk.ukim.finki.emt.books.web;
 
+import mk.ukim.finki.emt.books.model.Author;
 import mk.ukim.finki.emt.books.model.Book;
 import mk.ukim.finki.emt.books.model.dto.BookDto;
 import mk.ukim.finki.emt.books.model.enumerations.BookCategory;
+import mk.ukim.finki.emt.books.service.AuthorService;
 import mk.ukim.finki.emt.books.service.BookService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,14 +12,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin("*")
 @RequestMapping("/api")
 public class BookRestController {
 
     private final BookService bookService;
+    private final AuthorService authorService;
 
-    public BookRestController(BookService bookService) {
+    public BookRestController(BookService bookService, AuthorService authorService) {
         this.bookService = bookService;
+        this.authorService = authorService;
     }
 
     @GetMapping({"/", "/books"})
@@ -58,4 +62,15 @@ public class BookRestController {
         return BookCategory.values();
     }
 
+    @GetMapping("/authors")
+    private List<Author> findAuthors() {
+        return this.authorService.findAll();
+    }
+
+    @PutMapping("/take/{id}")
+    public ResponseEntity<Book> take(@PathVariable Long id) {
+        return this.bookService.take(id)
+                .map(book -> ResponseEntity.ok().body(book))
+                .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
 }
